@@ -521,12 +521,15 @@ for seq in tqdm(all_sequences, desc="Calculating belief states"):
     belief_states.append(belief)
 
 # Plot the ground truth belief state geometry
-def plot_simplex(belief_states, ax=None, s=2, title=None, colorbar=False, alpha=0.5):
+def plot_simplex(belief_states, ax=None, s=2, title=None, c=None,colorbar=False, alpha=0.5):
     """
     Plot belief states in a 2-simplex (triangle), including points outside the simplex.
     """
     if ax is None:
         fig, ax = plt.subplots(figsize=(8, 7))
+
+    if c is None:
+        c = belief_states
     
     # Convert list of belief states to a numpy array if it's not already
     if isinstance(belief_states[0], torch.Tensor):
@@ -538,16 +541,16 @@ def plot_simplex(belief_states, ax=None, s=2, title=None, colorbar=False, alpha=
     corners = np.array([[0, 0], [1, 0], [0.5, np.sqrt(3)/2]])
     
     # Draw the outline of the simplex
-    for i in range(3):
-        ax.plot([corners[i][0], corners[(i+1)%3][0]], 
-                [corners[i][1], corners[(i+1)%3][1]], 'k-', alpha=0.5)
+    # for i in range(3):
+    #     ax.plot([corners[i][0], corners[(i+1)%3][0]], 
+    #             [corners[i][1], corners[(i+1)%3][1]], 'k-', alpha=0.5)
     
     # Vectorized conversion from barycentric to Cartesian coordinates
     x = belief_states[:, 0] * corners[0, 0] + belief_states[:, 1] * corners[1, 0] + belief_states[:, 2] * corners[2, 0]
     y = belief_states[:, 0] * corners[0, 1] + belief_states[:, 1] * corners[1, 1] + belief_states[:, 2] * corners[2, 1]
     
     # Plot all points at once
-    scatter = ax.scatter(x, y, c=belief_states.clip(0, 1), s=s, alpha=alpha)
+    scatter = ax.scatter(x, y, c=c.clip(0, 1), s=s, alpha=alpha)
     
     # Set expanded plot limits to show points outside the simplex
     # Calculate the range of the points to determine appropriate limits
@@ -679,6 +682,7 @@ plot_simplex(
     projected_activations,
     ax=ax2,
     s=1,
+    c=Y,
     title="Residual Stream Representation",
     alpha=0.5
 )
